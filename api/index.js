@@ -17,7 +17,7 @@ async function getApp() {
   if (!app) {
     // Imported lazily so the module is only resolved after `pnpm build` runs.
     const { AppModule } = require('../dist/src/app.module');
-    app = await NestFactory.create(AppModule, { logger: false });
+    app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
@@ -36,7 +36,14 @@ async function getApp() {
 }
 
 module.exports = async (req, res) => {
-  const nestApp = await getApp();
-  const expressApp = nestApp.getHttpAdapter().getInstance();
-  expressApp(req, res);
+  try {
+    const nestApp = await getApp();
+    const expressApp = nestApp.getHttpAdapter().getInstance();
+    expressApp(req, res);
+  } catch (err) {
+    console.error('[VivaFemini] Fatal init error:', err);
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ statusCode: 500, message: err?.message ?? 'Internal server error' }));
+  }
 };
