@@ -17,7 +17,7 @@ async function getApp() {
   if (!app) {
     // Imported lazily so the module is only resolved after `pnpm build` runs.
     const { AppModule } = require('../dist/src/app.module');
-    app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
+    app = await NestFactory.create(AppModule, { logger: false });
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
