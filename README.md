@@ -1,98 +1,97 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# VivaFemini — Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+REST API for VivaFemini, built with **NestJS v11**, **Prisma v6**, and **SQLite** (dev) / **PostgreSQL** (prod).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+| Layer | Technology |
+|-------|-----------|
+| Framework | [NestJS](https://nestjs.com) v11 |
+| ORM | Prisma v6 |
+| Database | SQLite (dev) · PostgreSQL (prod) |
+| Auth | JWT + Passport |
+| Validation | class-validator + class-transformer |
+| Language | TypeScript (strict) |
+| Package Manager | pnpm |
+| Linting | ESLint + typescript-eslint |
+| Git Hooks | Husky + lint-staged |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## API Modules
 
-## Project setup
+| Module | Base path | Description |
+|--------|-----------|-------------|
+| `auth` | `POST /api/auth/register` `POST /api/auth/login` `GET /api/auth/me` | JWT auth |
+| `cycles` | `/api/cycles` | Cycle CRUD + `/current` + `/:id/predictions` |
+| `tracking` | `/api/tracking-entries` | Daily symptom log CRUD + `/date/:date` |
+| `symptoms` | `/api/symptoms` | Seeded symptom catalogue |
+| `analytics` | `/api/analytics` | Symptom frequency, cycle trends, history |
+| `health-reports` | `/api/health-reports` | Monthly report generation |
 
-```bash
-$ pnpm install
+## Project Structure
+
+```
+src/
+├── auth/
+│   ├── dto/             # LoginDto, RegisterDto
+│   ├── guards/          # JwtGuard
+│   ├── strategies/      # JwtStrategy
+│   ├── auth.controller.ts
+│   ├── auth.module.ts
+│   └── auth.service.ts
+├── cycles/              # Same pattern
+├── tracking/            # Same pattern
+├── symptoms/            # Same pattern
+├── analytics/           # Same pattern
+├── health-reports/      # Same pattern
+└── prisma/              # PrismaService (global module)
+prisma/
+├── schema.prisma        # All data models
+├── seed.ts              # 24 seeded symptoms
+└── migrations/          # Migration history
 ```
 
-## Compile and run the project
+## Getting Started
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
+cp .env.example .env      # set DATABASE_URL + JWT_SECRET
+pnpm db:migrate           # migrate + seed
+pnpm start:dev            # http://localhost:4000/api
 ```
 
-## Run tests
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | SQLite `file:./dev.db` or PostgreSQL URL | `file:./dev.db` |
+| `JWT_SECRET` | JWT signing secret | — |
+| `PORT` | Server port | `4000` |
+| `FRONTEND_URL` | CORS allowed origin | `http://localhost:3000` |
+
+## Scripts
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+pnpm start:dev    # Dev (watch mode)
+pnpm build        # Compile → dist/
+pnpm start:prod   # Run compiled build
+pnpm lint         # Lint + fix
+pnpm lint:check   # Lint (CI)
+pnpm test         # Unit tests
+pnpm db:migrate   # Run migrations + seed
+pnpm db:generate  # Regenerate Prisma Client
+pnpm db:studio    # Prisma Studio GUI
 ```
+
+## Code Quality
+
+- **ESLint** — import ordering, TypeScript strict, no floating promises
+- **Husky** — `lint-staged` on pre-commit (ESLint + `tsc --noEmit`)
+- **Conventional commits** enforced via `commit-msg` hook
+
+## Production Database
+
+Switch `DATABASE_URL` to a PostgreSQL URL (Neon, Supabase, Railway) and change `schema.prisma` datasource provider to `"postgresql"`, then re-run `pnpm db:migrate`.
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Deployed on **Vercel** as a Node.js serverless function. See `vercel.json`.
