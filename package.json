@@ -1,12 +1,12 @@
 {
   "name": "vivafemini-backend",
   "version": "0.1.0",
-  "description": "VivaFemini REST API — NestJS + Prisma + SQLite",
+  "description": "VivaFemini REST API — NestJS + Prisma + PostgreSQL (Neon)",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -92,5 +92,14 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "unrs-resolver"
+    ]
   }
 }
