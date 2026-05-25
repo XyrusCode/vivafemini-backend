@@ -1,15 +1,12 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
+  "buildCommand": "pnpm build",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.ts"
-    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
   ]
 }
