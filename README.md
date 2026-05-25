@@ -76,7 +76,6 @@ pnpm build        # Compile → dist/
 pnpm start:prod   # Run compiled build
 pnpm lint         # Lint + fix
 pnpm lint:check   # Lint (CI)
-pnpm test         # Unit tests
 pnpm db:migrate   # Run migrations + seed
 pnpm db:generate  # Regenerate Prisma Client
 pnpm db:studio    # Prisma Studio GUI
