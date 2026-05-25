@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  fullName  String
+  avatarUrl String?
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cycles         Cycle[]
+  trackingEntries TrackingEntry[]
+  healthReports  HealthReport[]
+}
+
+// ─── Cycle ────────────────────────────────────────────────────────────────────
+
+model Cycle {
+  id                  String      @id @default(cuid())
+  userId              String
+  cycleStartDate      DateTime
+  cycleEndDate        DateTime?
+  cycleLength         Int         @default(28)
+  periodStartDate     DateTime
+  periodEndDate       DateTime?
+  periodDuration      Int?
+  estimatedNextPeriod DateTime?
+  ovulationStartDate  DateTime?
+  ovulationEndDate    DateTime?
+  status              CycleStatus @default(active)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackingEntries TrackingEntry[]
+  healthReports   HealthReport[]
+}
+
+enum CycleStatus {
+  active
+  completed
+  paused
+}
+
+// ─── Symptom ──────────────────────────────────────────────────────────────────
+
+model Symptom {
+  id         String          @id @default(cuid())
+  name       String          @unique
+  category   SymptomCategory
+  iconEmoji  String
+  colorCode  String          @default("#ec4899")
+  isActive   Boolean         @default(true)
+
+  trackingSymptoms TrackingSymptom[]
+}
+
+enum SymptomCategory {
+  physical_pain
+  mood_mental
+  digestion_appetite
+  period_indicators
+  sexual_health
+}
+
+// ─── Tracking ─────────────────────────────────────────────────────────────────
+
+model TrackingEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  cycleId       String?
+  date          DateTime
+  time          String   @default("00:00")
+  flowIntensity Int?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycle    Cycle?            @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+  symptoms TrackingSymptom[]
+}
+
+model TrackingSymptom {
+  id              String  @id @default(cuid())
+  trackingEntryId String
+  symptomId       String
+  severityLevel   Int?
+
+  trackingEntry TrackingEntry @relation(fields: [trackingEntryId], references: [id], onDelete: Cascade)
+  symptom       Symptom       @relation(fields: [symptomId], references: [id], onDelete: Cascade)
+
+  @@unique([trackingEntryId, symptomId])
+}
+
+// ─── Health Report ────────────────────────────────────────────────────────────
+
+model HealthReport {
+  id                         String   @id @default(cuid())
+  userId                     String
+  cycleId                    String
+  monthYear                  String
+  averageCycleLength         Int
+  mostFrequentSymptom        String?
+  pmsSymptomFrequency        String   @default("{}")  // JSON stored as string
+  periodLengthTrend          String   @default("[]")  // JSON stored as string
+  symptomFrequencyBreakdown  String   @default("{}")  // JSON stored as string
+  generatedAt                DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycle Cycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+}
